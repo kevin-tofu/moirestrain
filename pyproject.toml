@@ -1,0 +1,79 @@
+[build-system]
+requires = ["poetry-core>=1.8.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "moirestrain"
+version = "0.1.0"
+description = "Sampling moire analysis for full-field micro-displacement and micro-strain measurement from grating images."
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+license = "MIT"
+authors = [
+  { name = "Kohei Watanabe" },
+]
+keywords = [
+  "sampling moire",
+  "phase-shifted sampling moire",
+  "moire",
+  "optical metrology",
+  "displacement measurement",
+  "strain measurement",
+  "grating",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = [
+  "numpy>=1.23",
+  "imageio>=2.31",
+  "matplotlib>=3.8",
+]
+
+[project.urls]
+Documentation = "https://moirestrain.readthedocs.io/en/latest/"
+Source = "https://github.com/kevin-tofu/moirestrain"
+Issues = "https://github.com/kevin-tofu/moirestrain/issues"
+Changelog = "https://github.com/kevin-tofu/moirestrain/blob/main/CHANGELOG.md"
+
+[project.scripts]
+moirestrain = "moirestrain.cli:main"
+
+[tool.poetry]
+name = "moirestrain"
+version = "0.1.0"
+description = "Sampling moire analysis for full-field micro-displacement and micro-strain measurement from grating images."
+authors = ["Kohei Watanabe"]
+readme = "README.md"
+packages = [{ include = "moirestrain", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+numpy = ">=1.23"
+imageio = ">=2.31"
+matplotlib = { version = ">=3.8", python = ">=3.9" }
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7"
+pytest-cov = ">=4"
+scikit-image = ">=0.22"
+sphinx = { version = ">=8.2,<9.0", python = ">=3.11" }
+recommonmark = { version = ">=0.7,<0.8", python = ">=3.11" }
+sphinx-rtd-theme = { version = ">=3.0,<4.0", python = ">=3.11" }
+myst-parser = { version = ">=4.0,<5.0", python = ">=3.11" }
+sphinx-autodoc-typehints = { version = ">=3.2,<4.0", python = ">=3.11" }
+sphinx-sitemap = { version = ">=2.6,<3.0", python = ">=3.11" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
