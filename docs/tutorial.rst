@@ -1,0 +1,347 @@
+Tutorial
+========
+
+Basic displacement analysis
+---------------------------
+
+Given a reference grating image and a deformed grating image:
+
+.. code-block:: python
+
+   import numpy as np
+   from moirestrain import phase_shifted_sampling_moire
+
+   result = phase_shifted_sampling_moire(
+       reference_image,
+       deformed_image,
+       period=8,
+       axis="x",
+       grating_pitch=8.0,
+       unwrap_axis="x",
+   )
+
+   displacement = result.displacement
+   phase_ref = result.reference_phase
+   phase_def = result.deformed_phase
+
+The sign convention is:
+
+.. math::
+
+   u = \frac{(\phi_\mathrm{def} - \phi_\mathrm{ref}) p}{2\pi}
+
+where ``p`` is ``grating_pitch``.
+
+Synthetic example
+-----------------
+
+.. code-block:: python
+
+   import numpy as np
+   from moirestrain import analyze
+
+   height, width = 80, 120
+   period = 8
+   y, x = np.mgrid[:height, :width]
+
+   reference = 128.0 + 80.0 * np.cos(2.0 * np.pi * x / period)
+   true_u = 0.6 + 0.002 * x
+   deformed = 128.0 + 80.0 * np.cos(2.0 * np.pi * (x + true_u) / period)
+
+   result = analyze(reference, deformed, period=period, axis="x", unwrap_axis="x")
+   print(np.mean(result.displacement))
+
+Synthetic experimental data
+---------------------------
+
+``moirestrain`` includes a small generator for experimental-looking grating image
+pairs. It adds illumination variation and Gaussian sensor noise while keeping
+ground-truth displacement and strain fields.
+
+.. code-block:: python
+
+   from moirestrain import (
+       analyze,
+       make_microstrain_experiment,
+       save_experiment_npz,
+       strain_field,
+   )
+
+   experiment = make_microstrain_experiment(
+       shape=(128, 160),
+       period=8,
+       strain_xx=800e-6,
+       rigid_shift=0.6,
+       noise_std=0.01,
+       seed=2,
+   )
+   save_experiment_npz("data/synthetic_microstrain_x.npz", experiment)
+
+   result = analyze(
+       experiment.reference_image,
+       experiment.deformed_image,
+       period=experiment.period,
+       axis="x",
+       unwrap_axis="x",
+   )
+   strain = strain_field(result.displacement, smooth_window=17)
+
+The same workflow is available as a script:
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/generate_experiment.py
+
+Front-facing square-marker microstrain target
+---------------------------------------------
+
+Before testing ROI detection or camera tilt, use a front-facing square-marker
+grid with known microstrain. The target has black square markers on a white
+background, with marker width equal to the white gap width. The captured image
+is simulated by pixel supersampling, so the analysis input is grayscale rather
+than a perfectly binary image.
+
+.. code-block:: python
+
+   from moirestrain import (
+       analyze_grid,
+       make_microstrain_square_grid,
+       recommended_strain_smoothing_window,
+   )
+
+   experiment = make_microstrain_square_grid(
+       period=8,
+       strain_xx=500e-6,
+       strain_yy=-200e-6,
+       shear_xy=150e-6,
+       supersample=64,
+   )
+   strain_window = recommended_strain_smoothing_window(experiment.period, cycles=8)
+   result = analyze_grid(
+       experiment.reference,
+       experiment.deformed,
+       period=8,
+       strain_smooth_window=strain_window,
+   )
+   exx = result.strain.exx
+
+Square-marker targets contain strong harmonics. Their displacement fields can
+include pixel-periodic ripple, which is amplified by differentiation. Use a
+larger ``strain_smooth_window`` when evaluating microstrain from these targets.
+
+The same workflow is available as a script:
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/microstrain_square_grid.py
+
+For repeatable checks, run the benchmark script. It writes the synthetic input,
+the analysis result, a JSON metrics file, and a PNG summary. The command exits
+with a non-zero status when the mean absolute errors exceed the configured
+limits.
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/benchmark_microstrain.py
+
+To compare measurement conditions, run the sweep script. It varies grating
+period, blur, noise level, and strain preset, then writes CSV, JSON, a Markdown
+summary, and a compact period-performance plot.
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/benchmark_sweep.py
+
+.. image:: _static/benchmark_sweep_period_plot.png
+   :alt: Microstrain benchmark sweep period plot
+   :width: 100%
+
+The presets serve different purposes. ``micro`` is a small-strain accuracy
+check, ``demo`` makes strain fields easier to see, and ``stress`` probes where
+the pipeline begins to lose accuracy. In these synthetic square-marker cases,
+larger camera-space periods generally reduce phase ripple and improve strain
+estimation. Treat the sweep as a design tool for choosing target pitch,
+imaging magnification, smoothing length, and valid ROI margins before running
+real experiments.
+
+Command line analysis
+---------------------
+
+For real image files, start with a manually specified ROI and known period:
+
+.. code-block:: bash
+
+   moirestrain analyze-grid ref.png def.png \
+       --period 8 \
+       --roi 100,120,260,320 \
+       --out result.npz \
+       --figure result.png
+
+The ``.npz`` output stores full analysis arrays. The PNG summary uses a valid
+inner ROI for display.
+
+When the grating occupies only part of the image, use automatic ROI detection:
+
+.. code-block:: bash
+
+   moirestrain analyze-grid ref.png def.png \
+       --period 8 \
+       --auto-roi \
+       --roi-margin 8 \
+       --out result.npz \
+       --figure result.png
+
+For batch jobs that only need arrays, add ``--no-figure``. The output ``.npz``
+stores ``u``, ``v``, ``exx``, ``eyy``, ``gamma_xy``, ``valid_mask``, and the
+analysis settings such as ``period`` and ``strain_window``.
+
+If four corners of a tilted planar grating are known, rectify the image pair
+before analysis:
+
+.. code-block:: bash
+
+   moirestrain make-calibration \
+       --image-points x0,y0,x1,y1,x2,y2,x3,y3 \
+       --output-shape 240,320 \
+       --period 8 \
+       --out calibration.json
+
+   moirestrain rectify-pair ref.png def.png \
+       --calibration calibration.json \
+       --reference-out rectified_ref.npy \
+       --deformed-out rectified_def.npy \
+       --metadata-out rectification_metadata.json
+
+   moirestrain analyze-grid ref.png def.png \
+       --period 8 \
+       --calibration calibration.json \
+       --out result.npz \
+       --figure result.png
+
+The corner order is top-left, top-right, bottom-right, bottom-left in
+image-space ``x,y`` coordinates. ``analyze-grid`` still accepts inline
+``--rectify-corners`` for quick experiments, but ``--calibration`` is the
+recommended format for repeatable work.
+
+When physical dimensions are known, add ``--world-points`` and ``--unit`` to
+``make-calibration``. The calibration JSON then records the rectified pixel
+spacing, which is useful for reporting displacement in physical units. With a
+calibration that contains ``world_points``, ``analyze-grid`` saves
+``u_physical``, ``v_physical``, ``pixel_spacing``, ``unit``, and physical-coordinate
+strain fields in addition to the pixel-unit arrays.
+
+Strain distribution example
+---------------------------
+
+For a two-direction grating setup, analyze x and y grating images separately
+and pass the resulting displacement components to ``strain_field``.
+
+.. code-block:: python
+
+   from moirestrain import analyze_grid, make_strain_distribution_experiment
+
+   experiment = make_strain_distribution_experiment()
+
+   reference_grid = 0.5 * (experiment.reference_x + experiment.reference_y)
+   deformed_grid = 0.5 * (experiment.deformed_x + experiment.deformed_y)
+   result = analyze_grid(reference_grid, deformed_grid, experiment.period)
+   strain = result.strain
+   exx = strain.exx
+   eyy = strain.eyy
+   gamma_xy = strain.gamma_xy
+
+The script below writes input data, result arrays, and a PNG visualization:
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/strain_distribution.py
+
+Perspective rectification and partial grating ROI
+-------------------------------------------------
+
+When the grating occupies only part of the camera image, first detect or crop
+the grating ROI. Four corner points are not mandatory for ROI detection; they
+are only needed when perspective rectification is required.
+
+.. code-block:: python
+
+   from moirestrain import analyze, rectify_image
+
+   image_points = [
+       [34.0, 18.0],
+       [164.0, 30.0],
+       [150.0, 128.0],
+       [20.0, 118.0],
+   ]
+
+   reference = rectify_image(reference_camera, image_points, output_shape=(96, 128))
+   deformed = rectify_image(deformed_camera, image_points, output_shape=(96, 128))
+   result = analyze(reference, deformed, period=8, axis="x", unwrap_axis="x")
+
+This handles a planar grating region under perspective projection. For an
+axis-aligned target, an ROI crop from ``detect_grating_roi`` is enough. For a
+tilted target, corner points or a reliable geometric fit are needed to
+rectify the image before strain analysis.
+
+The same workflow is available as a script:
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/perspective_rectification.py
+
+When a target is strongly tilted, use one of two routes:
+
+* Rectify the grating ROI with ``rectify_image`` or ``rectify_image_pair`` when
+  four planar corner points are available.
+* Use ``resample_oblique_grid`` when the local grating direction vectors are
+  known and an affine/oblique sampling model is sufficient.
+
+The analysis arrays are kept at full size, but visualization and error
+evaluation should use a valid inner ROI. ``inner_valid_mask``,
+``apply_valid_mask``, and ``crop_to_mask`` provide this workflow.
+
+Natural image sample with an inserted grating
+---------------------------------------------
+
+For an axis-aligned square-grid patch inside a larger camera image, use the
+partial-grid detection example. It detects the grating ROI from local grating
+energy, crops the reference/deformed images, analyzes the cropped ROI, and
+writes a figure with the full image, detected mask, cropped ROI, strain field,
+and strain error.
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/partial_grid_detection_analysis.py
+
+.. image:: _static/partial_grid_detection_analysis.png
+   :alt: Partial square-grid ROI detection and strain analysis
+   :width: 100%
+
+For a cleaner presentation without error panels:
+
+.. image:: _static/partial_grid_strain_measured_true.png
+   :alt: Measured and true strain fields for the partial square-grid ROI
+   :width: 100%
+
+The example below uses ``skimage.data.camera`` as a natural-image background,
+places a tilted square-marker grid patch into the image, detects the patch,
+rectifies it, separates the x/y grating components by directional smoothing,
+and writes the measured strain distribution. The black square width and the
+white gap width are equal.
+
+.. code-block:: bash
+
+   PYTHONPATH=src python examples/skimage_natural_grating_strain.py
+
+.. image:: _static/natural_grating_strain.png
+   :alt: Natural image sample with detected square-marker grating and strain fields
+   :width: 100%
+
+Choosing the axis
+-----------------
+
+Use ``axis="x"`` when phase shifts are generated by shifting sampling
+positions along the image x direction. Use ``axis="y"`` for the y direction.
+
+For two-dimensional grating measurement, analyze the x and y grating
+components separately and combine the resulting displacement components.
