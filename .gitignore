@@ -1,0 +1,16 @@
+.venv/
+dist/
+build/
+*.egg-info/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+docs/_build/
+data/
+sample-repo/
+
+.DS_Store

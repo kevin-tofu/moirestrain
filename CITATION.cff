@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use moirestrain, please cite the software and the sampling moire method reference relevant to your work."
+title: "moirestrain: Sampling moire analysis for full-field micro-displacement and micro-strain measurement"
+version: "0.1.0"
+date-released: "2026-05-14"
+license: MIT
+authors:
+  - family-names: "Kohei"
+repository-code: "https://github.com/kevin-tofu/moirestrain"
+url: "https://moirestrain.readthedocs.io/en/latest/"
+keywords:
+  - sampling moire
+  - phase-shifted sampling moire
+  - displacement measurement
+  - strain measurement
+  - optical metrology
+references:
+  - type: article
+    title: "Proposal of Strain Measurement Method for Electronic Packages Using Phase-Shifted Sampling Moire Method"
+    authors:
+      - family-names: "Koganemaru"
+        given-names: "Masaaki"
+      - family-names: "Nagato"
+        given-names: "Sho"
+      - family-names: "Uchino"
+        given-names: "Masakazu"
+      - family-names: "Ikeda"
+        given-names: "Toru"
+    journal: "Journal of The Japan Institute of Electronics Packaging"
+    volume: 22
+    issue: 1
+    year: 2019
+    start: 95
+    end: 102
+    doi: "10.5104/jiep.22.95"
