@@ -12,5 +12,6 @@ htmlcov/
 docs/_build/
 data/
 sample-repo/
+CITATION.cff
 
 .DS_Store

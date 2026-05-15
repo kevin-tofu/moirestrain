@@ -1,5 +1,7 @@
 # moirestrain
 
+Current version: `0.1.1`
+
 NumPy-first tools for phase-shifted sampling moire analysis of periodic
 grating images. `moirestrain` targets full-field micro-displacement and
 micro-strain measurement from reference/deformed grid images.
@@ -31,14 +33,14 @@ is used only by optional examples and development tests.
 This example detects a square-grid patch inside a larger image, crops the
 valid ROI, and compares measured strain against the known synthetic truth.
 
-![partial grid measured true strain comparison](docs/_static/partial_grid_strain_measured_true.png)
+![partial grid measured true strain comparison](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_strain_measured_true.png)
 
 ### ROI Detection In A Full Image
 
 The same workflow also reports the full image, grating-energy map, detected
 mask, cropped ROI, and strain field.
 
-![partial grid detection analysis](docs/_static/partial_grid_detection_analysis.png)
+![partial grid detection analysis](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_detection_analysis.png)
 
 ### Natural-Image Background
 
@@ -46,16 +48,28 @@ This example places a square-grid strain target on a natural-image background,
 detects the grid ROI, rectifies the patch, and outputs the measured strain
 fields.
 
-![natural image grid strain analysis](docs/_static/natural_grating_strain.png)
+![natural image grid strain analysis](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/natural_grating_strain.png)
 
 ### Benchmark
 
 The benchmark compares measured fields with ground truth and sweeps target
 period and strain presets.
 
-![microstrain benchmark sweep](docs/_static/benchmark_sweep_period_plot.png)
+![microstrain benchmark sweep](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/benchmark_sweep_period_plot.png)
 
 ## Installation
+
+Install the released package from PyPI with pip:
+
+```bash
+pip install moirestrain
+```
+
+Or add it to a Poetry project:
+
+```bash
+poetry add moirestrain
+```
 
 For local development:
 

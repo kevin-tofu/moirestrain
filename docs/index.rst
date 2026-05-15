@@ -1,6 +1,8 @@
 moirestrain documentation
 ======================
 
+:Version: 0.1.1
+
 ``moirestrain`` is a NumPy-first package for sampling moire analysis of periodic
 grating images. It targets full-field micro-displacement and micro-strain
 measurement from reference and deformed images.

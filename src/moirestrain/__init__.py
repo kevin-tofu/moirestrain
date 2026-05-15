@@ -1,5 +1,7 @@
 """Sampling moire analysis for displacement and strain measurement."""
 
+__version__ = "0.1.1"
+
 from .core import (
     AnalysisResult,
     GridAnalysisResult,
@@ -44,6 +46,7 @@ from .synthetic import (
 )
 
 __all__ = [
+    "__version__",
     "AnalysisResult",
     "GratingROI",
     "GridAnalysisResult",

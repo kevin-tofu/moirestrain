@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "moirestrain"
-version = "0.1.0"
+version = "0.1.1"
 description = "Sampling moire analysis for full-field micro-displacement and micro-strain measurement from grating images."
 readme = "README.md"
 requires-python = ">=3.9,<4.0"
@@ -51,7 +51,7 @@ moirestrain = "moirestrain.cli:main"
 
 [tool.poetry]
 name = "moirestrain"
-version = "0.1.0"
+version = "0.1.1"
 description = "Sampling moire analysis for full-field micro-displacement and micro-strain measurement from grating images."
 authors = ["Kohei Watanabe"]
 readme = "README.md"
