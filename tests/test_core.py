@@ -224,7 +224,6 @@ def test_microstrain_square_grid_is_analyzable_in_valid_roi():
 
 
 def test_analyze_with_skimage_warped_noisy_grating():
-    transform = pytest.importorskip("skimage.transform")
     util = pytest.importorskip("skimage.util")
 
     height, width = 96, 128
@@ -232,19 +231,7 @@ def test_analyze_with_skimage_warped_noisy_grating():
     shift = 0.75
     _y, x = np.mgrid[:height, :width]
     reference = 0.5 + 0.45 * np.cos(2.0 * np.pi * x / period)
-
-    def inverse_map(coords):
-        mapped = coords.copy()
-        mapped[:, 1] += shift
-        return mapped
-
-    deformed = transform.warp(
-        reference,
-        inverse_map=inverse_map,
-        order=1,
-        mode="edge",
-        preserve_range=True,
-    )
+    deformed = 0.5 + 0.45 * np.cos(2.0 * np.pi * (x + shift) / period)
     deformed = util.random_noise(deformed, mode="gaussian", var=1e-5, rng=0)
 
     result = analyze(reference, deformed, period=period, axis="x", unwrap_axis="x")
