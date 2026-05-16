@@ -1,5 +1,11 @@
 # moirestrain
 
+[![Python tests](https://github.com/kevin-tofu/moirestrain/actions/workflows/python-tests.yml/badge.svg)](https://github.com/kevin-tofu/moirestrain/actions/workflows/python-tests.yml)
+[![Documentation Status](https://readthedocs.org/projects/moirestrain/badge/?version=latest)](https://moirestrain.readthedocs.io/en/latest/)
+[![PyPI version](https://img.shields.io/pypi/v/moirestrain.svg)](https://pypi.org/project/moirestrain/)
+[![Python versions](https://img.shields.io/pypi/pyversions/moirestrain.svg)](https://pypi.org/project/moirestrain/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Current version: `0.1.1`
 
 NumPy-first tools for phase-shifted sampling moire analysis of periodic
