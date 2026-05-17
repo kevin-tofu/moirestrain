@@ -32,6 +32,36 @@ The numerical core is NumPy-based. Runtime dependencies also include
 `imageio` and `matplotlib` for CLI image I/O and PNG reporting. `scikit-image`
 is used only by optional examples and development tests.
 
+## Method Formulae
+
+For `N` equally phase-shifted moire images,
+
+$$
+I_k = a + b \cos\left(\phi + \frac{2\pi k}{N}\right),
+$$
+
+`moirestrain` estimates the wrapped phase from the first Fourier component:
+
+$$
+\phi =
+\operatorname{atan2}\left(
+-\sum_{k=0}^{N-1} I_k \sin\frac{2\pi k}{N},
+\sum_{k=0}^{N-1} I_k \cos\frac{2\pi k}{N}
+\right).
+$$
+
+The displacement component along the analyzed grating direction is then
+calculated from the deformed/reference phase difference:
+
+$$
+u = \frac{\Delta\phi}{2\pi} p,
+\quad
+\Delta\phi = \phi_\mathrm{deformed} - \phi_\mathrm{reference}.
+$$
+
+Here `p` is `grating_pitch`; when it is given in pixels, the displacement is
+returned in pixels.
+
 ## Results
 
 ### Partial-Grid Strain Recovery

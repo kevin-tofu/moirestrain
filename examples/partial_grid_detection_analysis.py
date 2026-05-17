@@ -202,6 +202,7 @@ def _save_figure(
 def _save_measured_true_figure(
     path: Path,
     *,
+    grid: np.ndarray,
     measured: dict[str, np.ndarray],
     truth: dict[str, np.ndarray],
     valid_mask: np.ndarray,
@@ -220,7 +221,23 @@ def _save_measured_true_figure(
     def valid_view(array: np.ndarray) -> np.ndarray:
         return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
 
-    fig, axes = plt.subplots(3, 2, figsize=(7.4, 8.4), constrained_layout=True)
+    grid_view = crop_to_mask(grid, valid_mask)
+    fig = plt.figure(figsize=(10.4, 8.4), constrained_layout=True)
+    spec = fig.add_gridspec(3, 3, width_ratios=(1.15, 1.0, 1.0))
+    for row in range(len(names)):
+        grid_ax = fig.add_subplot(spec[row, 0])
+        grid_ax.imshow(grid_view, cmap="gray", vmin=0.0, vmax=1.0)
+        if row == 0:
+            grid_ax.set_title("cropped grid")
+        grid_ax.set_axis_off()
+
+    axes = np.array(
+        [
+            [fig.add_subplot(spec[row, col]) for col in (1, 2)]
+            for row in range(len(names))
+        ],
+        dtype=object,
+    )
     for row, name in enumerate(names):
         measured_view = valid_view(measured[name])
         truth_view = valid_view(truth[name])
@@ -379,6 +396,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         _save_measured_true_figure(
             output_dir / "partial_grid_strain_measured_true.png",
+            grid=cropped_reference,
             measured={
                 "exx": result.strain.exx,
                 "eyy": result.strain.eyy,
