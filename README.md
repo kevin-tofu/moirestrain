@@ -8,6 +8,8 @@
 
 Current version: `0.1.1`
 
+Documentation: <https://moirestrain.readthedocs.io/en/latest/>
+
 NumPy-first tools for phase-shifted sampling moire analysis of periodic
 grating images. `moirestrain` targets full-field micro-displacement and
 micro-strain measurement from reference/deformed grid images.
@@ -17,16 +19,16 @@ reference/deformed phase differences into displacement and small-strain fields.
 The current high-level workflow focuses on two-dimensional square-marker grid
 targets, such as regularly spaced black squares on a white background.
 
-## Highlights
+## What It Can Do
 
 - Generate phase-shifted sampling moire images from a single grating image.
-- Estimate wrapped phase with a phase-shifting formula.
-- Calculate displacement from reference/deformed phase difference.
+- Estimate wrapped phase and convert reference/deformed phase differences into displacement.
 - Analyze square-grid targets in both x/y directions.
-- Output `u`, `v`, `exx`, `eyy`, and `gamma_xy` fields.
-- Detect partial grating ROIs inside larger images.
-- Rectify tilted planar grating regions from four corner points.
-- Save analysis arrays, valid ROI masks, and PNG summaries.
+- Compute `u`, `v`, `exx`, `eyy`, and `gamma_xy` fields.
+- Detect partial grating ROIs inside larger images using grating-energy maps.
+- Rectify oblique planar grid targets from four corner points.
+- Separate square-grid images into x-periodic and y-periodic components.
+- Export `.npz` arrays, valid ROI masks, and PNG summaries for reproducible workflows.
 
 The numerical core is NumPy-based. Runtime dependencies also include
 `imageio` and `matplotlib` for CLI image I/O and PNG reporting. `scikit-image`
@@ -71,21 +73,6 @@ grating-energy ROI detection, and compares measured strain against the known
 synthetic truth.
 
 ![partial grid measured true strain comparison](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_strain_measured_true.png)
-
-### Natural-Image Background
-
-This example uses an oblique camera view of a square-grid target, detects the
-target ROI, rectifies it to a front-facing grid, and separates the x/y grating
-components before displacement and strain analysis.
-
-![natural image grid strain analysis](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/natural_grating_strain.png)
-
-### Benchmark
-
-The benchmark compares measured fields with ground truth and sweeps target
-period and strain presets.
-
-![microstrain benchmark sweep](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/benchmark_sweep_period_plot.png)
 
 ## Installation
 

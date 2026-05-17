@@ -317,9 +317,9 @@ the full image, grating-energy map, detected mask, and measured/true/error
    :alt: Partial square-grid ROI detection and measured/true strain comparison
    :width: 100%
 
-The example below uses ``skimage.data.camera`` as a natural-image background,
-places an oblique square-marker grid patch into the image, detects the patch,
-rectifies it from four image-space corner points, and visualizes the rectified
+The example below demonstrates oblique-grid rectification. It places a tilted
+square-marker grid patch into a camera image, detects the patch, rectifies it
+from four image-space corner points, and visualizes the rectified
 reference/deformed grids plus the separated x/y grating components. The black
 square width and the white gap width are equal.
 
