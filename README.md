@@ -66,23 +66,17 @@ returned in pixels.
 
 ### Partial-Grid Strain Recovery
 
-This example detects a square-grid patch inside a larger image, crops the
-valid ROI, and compares measured strain against the known synthetic truth.
+This example detects a square-grid patch inside a larger image, shows the
+grating-energy ROI detection, and compares measured strain against the known
+synthetic truth.
 
 ![partial grid measured true strain comparison](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_strain_measured_true.png)
 
-### ROI Detection In A Full Image
-
-The same workflow also reports the full image, grating-energy map, detected
-mask, cropped ROI, and strain field.
-
-![partial grid detection analysis](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_detection_analysis.png)
-
 ### Natural-Image Background
 
-This example places a square-grid strain target on a natural-image background,
-detects the grid ROI, rectifies the patch, and outputs the measured strain
-fields.
+This example uses an oblique camera view of a square-grid target, detects the
+target ROI, rectifies it to a front-facing grid, and separates the x/y grating
+components before displacement and strain analysis.
 
 ![natural image grid strain analysis](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/natural_grating_strain.png)
 

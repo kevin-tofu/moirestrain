@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .masking import apply_valid_mask, crop_to_mask, robust_limits
+from .masking import apply_valid_mask, robust_limits
 
 
 def save_grid_analysis_figure(
@@ -29,7 +29,7 @@ def save_grid_analysis_figure(
         raise ImportError("matplotlib is required to save analysis figures") from exc
 
     def valid_view(array: np.ndarray) -> np.ndarray:
-        return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
+        return apply_valid_mask(array, valid_mask)
 
     fields = {
         "reference": reference,
@@ -77,7 +77,7 @@ def save_grid_truth_comparison_figure(
         raise ValueError("measured and truth must share at least one field")
 
     def valid_view(array: np.ndarray) -> np.ndarray:
-        return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
+        return apply_valid_mask(array, valid_mask)
 
     fig, axes = plt.subplots(len(names), 3, figsize=(10.5, 2.6 * len(names)), constrained_layout=True)
     if len(names) == 1:

@@ -5,7 +5,6 @@ import numpy as np
 from moirestrain import (
     analyze_grid,
     apply_valid_mask,
-    crop_to_mask,
     detect_grating_roi,
     grating_energy,
     homography_from_points,
@@ -38,23 +37,53 @@ def _camera_image() -> np.ndarray:
     return img_as_float(image)
 
 
-def _save_figure(path: Path, fields: dict[str, np.ndarray]) -> None:
+def _save_figure(
+    path: Path,
+    *,
+    reference: np.ndarray,
+    image_points: np.ndarray,
+    detected_mask: np.ndarray,
+    rectified_reference: np.ndarray,
+    rectified_deformed: np.ndarray,
+    reference_x_component: np.ndarray,
+    reference_y_component: np.ndarray,
+) -> None:
     try:
         import os
 
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/moirestrain-matplotlib")
         import matplotlib.pyplot as plt
+        from matplotlib.patches import Polygon
     except ImportError:
         print("matplotlib is not installed; skipped PNG visualization")
         return
 
+    fields = [
+        ("oblique camera image", reference, "gray", None),
+        ("detected ROI mask", detected_mask.astype(float), "gray", (0.0, 1.0)),
+        ("rectified reference", rectified_reference, "gray", None),
+        ("rectified deformed", rectified_deformed, "gray", None),
+        ("x-periodic component", reference_x_component, "gray", None),
+        ("y-periodic component", reference_y_component, "gray", None),
+    ]
     fig, axes = plt.subplots(2, 3, figsize=(11, 7), constrained_layout=True)
-    for ax, (title, field) in zip(axes.ravel(), fields.items()):
-        cmap = "gray" if "image" in title or "mask" in title else "coolwarm"
+    for ax, (title, field, cmap, limits) in zip(axes.ravel(), fields):
         kwargs = {}
-        if cmap == "coolwarm":
+        if limits is not None:
+            kwargs["vmin"], kwargs["vmax"] = limits
+        elif cmap == "coolwarm":
             kwargs["vmin"], kwargs["vmax"] = robust_limits(field)
         image = ax.imshow(field, cmap=cmap, **kwargs)
+        if title == "oblique camera image":
+            ax.add_patch(
+                Polygon(
+                    image_points,
+                    closed=True,
+                    fill=False,
+                    edgecolor="tab:red",
+                    linewidth=2.0,
+                )
+            )
         ax.set_title(title)
         ax.set_axis_off()
         fig.colorbar(image, ax=ax, shrink=0.72)
@@ -161,12 +190,7 @@ def main() -> None:
         threshold=float(np.quantile(energy, 0.90)),
         min_area=4_000,
     )
-    ref_rect, def_rect = rectify_image_pair(
-        reference,
-        deformed,
-        detected.image_points,
-        output_shape=rectified_shape,
-    )
+    ref_rect, def_rect = rectify_image_pair(reference, deformed, image_points, output_shape=rectified_shape)
 
     grid_result = analyze_grid(
         ref_rect,
@@ -185,6 +209,7 @@ def main() -> None:
         reference_x_component=grid_result.reference_x_component,
         reference_y_component=grid_result.reference_y_component,
         detected_points=detected.image_points,
+        rectification_points=image_points,
         detected_mask=detected.mask,
         u=grid_result.x.displacement,
         v=grid_result.y.displacement,
@@ -193,23 +218,15 @@ def main() -> None:
         gamma_xy=grid_result.strain.gamma_xy,
         valid_mask=valid_mask,
     )
-    u_view = crop_to_mask(apply_valid_mask(grid_result.x.displacement, valid_mask), valid_mask)
-    exx_view = crop_to_mask(apply_valid_mask(grid_result.strain.exx, valid_mask), valid_mask)
-    eyy_view = crop_to_mask(apply_valid_mask(grid_result.strain.eyy, valid_mask), valid_mask)
-    gamma_view = crop_to_mask(
-        apply_valid_mask(grid_result.strain.gamma_xy, valid_mask),
-        valid_mask,
-    )
     _save_figure(
         output_dir / "skimage_natural_grating_strain.png",
-        {
-            "camera image + square grid": reference,
-            "detected ROI mask": detected.mask.astype(float),
-            "u valid ROI": u_view,
-            "exx valid ROI": exx_view,
-            "eyy valid ROI": eyy_view,
-            "gamma_xy valid ROI": gamma_view,
-        },
+        reference=reference,
+        image_points=image_points,
+        detected_mask=detected.mask,
+        rectified_reference=ref_rect,
+        rectified_deformed=def_rect,
+        reference_x_component=grid_result.reference_x_component,
+        reference_y_component=grid_result.reference_y_component,
     )
 
     print("wrote: data/skimage_natural_grating_strain_result.npz")

@@ -160,7 +160,7 @@ def _save_figure(
     y0, x0, y1, x1 = bounds
 
     def valid_view(array: np.ndarray) -> np.ndarray:
-        return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
+        return apply_valid_mask(array, valid_mask)
 
     fields = [
         ("full image + detected ROI", reference, "gray", None),
@@ -203,6 +203,8 @@ def _save_measured_true_figure(
     path: Path,
     *,
     reference: np.ndarray,
+    energy: np.ndarray,
+    detected_mask: np.ndarray,
     bounds: tuple[int, int, int, int],
     measured: dict[str, np.ndarray],
     truth: dict[str, np.ndarray],
@@ -218,48 +220,57 @@ def _save_measured_true_figure(
         print("matplotlib is not installed; skipped measured/true PNG visualization")
         return
 
-    names = ["exx", "eyy", "gamma_xy"]
+    name = "exx"
     y0, x0, y1, x1 = bounds
 
-    def valid_view(array: np.ndarray) -> np.ndarray:
-        return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
+    fig = plt.figure(figsize=(11.8, 6.8), constrained_layout=True)
+    spec = fig.add_gridspec(2, 3)
+    overview_axes = [fig.add_subplot(spec[0, col]) for col in range(3)]
+    overview_fields = [
+        ("full image + ROI", reference, "gray", None),
+        ("grating energy", energy, "magma", robust_limits(energy)),
+        ("detected mask", detected_mask.astype(float), "gray", (0.0, 1.0)),
+    ]
+    for ax, (title, field, cmap, limits) in zip(overview_axes, overview_fields):
+        kwargs = {}
+        if limits is not None:
+            kwargs["vmin"], kwargs["vmax"] = limits
+        image = ax.imshow(field, cmap=cmap, **kwargs)
+        if title == "full image + ROI":
+            ax.add_patch(
+                Rectangle(
+                    (x0, y0),
+                    x1 - x0,
+                    y1 - y0,
+                    fill=False,
+                    edgecolor="tab:red",
+                    linewidth=2.0,
+                )
+            )
+        ax.set_title(title)
+        ax.set_axis_off()
+        fig.colorbar(image, ax=ax, shrink=0.72)
 
-    fig = plt.figure(figsize=(10.4, 8.4), constrained_layout=True)
-    spec = fig.add_gridspec(3, 3, width_ratios=(1.15, 1.0, 1.0))
-    grid_ax = fig.add_subplot(spec[:, 0])
-    grid_ax.imshow(reference, cmap="gray", vmin=0.0, vmax=1.0)
-    grid_ax.add_patch(
-        Rectangle(
-            (x0, y0),
-            x1 - x0,
-            y1 - y0,
-            fill=False,
-            edgecolor="tab:red",
-            linewidth=2.0,
+    measured_view = measured[name]
+    truth_view = truth[name]
+    error_view = measured_view - truth_view
+    limits = robust_limits(np.stack([measured_view, truth_view]))
+    error_limits = robust_limits(error_view)
+    comparison_axes = [fig.add_subplot(spec[1, col]) for col in range(3)]
+    for ax, title, field, panel_limits in (
+        (comparison_axes[0], f"{name} measured", measured_view, limits),
+        (comparison_axes[1], f"{name} true", truth_view, limits),
+        (comparison_axes[2], f"{name} error", error_view, error_limits),
+    ):
+        image = ax.imshow(
+            field,
+            cmap="coolwarm",
+            vmin=panel_limits[0],
+            vmax=panel_limits[1],
         )
-    )
-    grid_ax.set_title("full image + ROI")
-    grid_ax.set_axis_off()
-
-    axes = np.array(
-        [
-            [fig.add_subplot(spec[row, col]) for col in (1, 2)]
-            for row in range(len(names))
-        ],
-        dtype=object,
-    )
-    for row, name in enumerate(names):
-        measured_view = valid_view(measured[name])
-        truth_view = valid_view(truth[name])
-        limits = robust_limits(np.stack([measured_view, truth_view]))
-        for ax, title, field in (
-            (axes[row, 0], f"{name} measured", measured_view),
-            (axes[row, 1], f"{name} true", truth_view),
-        ):
-            image = ax.imshow(field, cmap="coolwarm", vmin=limits[0], vmax=limits[1])
-            ax.set_title(title)
-            ax.set_axis_off()
-            fig.colorbar(image, ax=ax, shrink=0.72)
+        ax.set_title(title)
+        ax.set_axis_off()
+        fig.colorbar(image, ax=ax, shrink=0.72)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=170)
     plt.close(fig)
@@ -407,6 +418,8 @@ def main(argv: list[str] | None = None) -> int:
         _save_measured_true_figure(
             output_dir / "partial_grid_strain_measured_true.png",
             reference=reference,
+            energy=energy,
+            detected_mask=roi.mask,
             bounds=roi.bounds,
             measured={
                 "exx": result.strain.exx,

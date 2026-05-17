@@ -5,7 +5,6 @@ import numpy as np
 from moirestrain import (
     analyze_grid,
     apply_valid_mask,
-    crop_to_mask,
     inner_valid_mask,
     make_microstrain_square_grid,
     recommended_strain_smoothing_window,
@@ -78,7 +77,7 @@ def main() -> None:
     )
 
     def valid_view(array: np.ndarray) -> np.ndarray:
-        return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
+        return apply_valid_mask(array, valid_mask)
 
     _save_figure(
         output_dir / "microstrain_square_grid.png",
