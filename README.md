@@ -44,7 +44,7 @@ $$
 
 $$
 \phi =
-\operatorname{atan2}\left(
+\mathrm{atan2}\left(
 -\sum_{k=0}^{N-1} I_k \sin\frac{2\pi k}{N},
 \sum_{k=0}^{N-1} I_k \cos\frac{2\pi k}{N}
 \right).

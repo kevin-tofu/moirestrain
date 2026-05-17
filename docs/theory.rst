@@ -18,8 +18,8 @@ the wrapped phase can be estimated from the first Fourier component:
 
 .. math::
 
-   \phi = \operatorname{atan2}\left(-\sum_k I_k \sin\frac{2\pi k}{N},
-                                    \sum_k I_k \cos\frac{2\pi k}{N}\right).
+   \phi = \mathrm{atan2}\left(-\sum_k I_k \sin\frac{2\pi k}{N},
+                              \sum_k I_k \cos\frac{2\pi k}{N}\right).
 
 In ``moirestrain``, ``phase_shifted_stack`` generates the phase-shifted moire
 image stack and ``wrapped_phase`` applies this phase-shifting formula. The
