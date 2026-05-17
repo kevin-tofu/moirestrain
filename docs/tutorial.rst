@@ -296,45 +296,39 @@ When a target is strongly tilted, use one of two routes:
 * Use ``resample_oblique_grid`` when the local grating direction vectors are
   known and an affine/oblique sampling model is sufficient.
 
-The analysis arrays are kept at full size, but visualization and error
-evaluation should use a valid inner ROI. ``inner_valid_mask``,
-``apply_valid_mask``, and ``crop_to_mask`` provide this workflow.
+The analysis arrays are kept at full size. Error metrics should use a valid
+inner ROI near image boundaries; ``inner_valid_mask`` and ``apply_valid_mask``
+provide this workflow without changing the displayed array shape.
 
-Natural image sample with an inserted grating
----------------------------------------------
+Partial-grid detection and oblique-grid rectification
+-----------------------------------------------------
 
 For an axis-aligned square-grid patch inside a larger camera image, use the
 partial-grid detection example. It detects the grating ROI from local grating
-energy, crops the reference/deformed images, analyzes the cropped ROI, and
-writes a figure with the full image, detected mask, cropped ROI, strain field,
-and strain error.
+energy, analyzes the detected ROI, and writes a README-oriented figure with
+the full image, grating-energy map, detected mask, and measured/true/error
+``exx`` fields.
 
 .. code-block:: bash
 
    PYTHONPATH=src python examples/partial_grid_detection_analysis.py
 
-.. image:: _static/partial_grid_detection_analysis.png
-   :alt: Partial square-grid ROI detection and strain analysis
-   :width: 100%
-
-For a cleaner presentation without error panels:
-
 .. image:: _static/partial_grid_strain_measured_true.png
-   :alt: Measured and true strain fields for the partial square-grid ROI
+   :alt: Partial square-grid ROI detection and measured/true strain comparison
    :width: 100%
 
 The example below uses ``skimage.data.camera`` as a natural-image background,
-places a tilted square-marker grid patch into the image, detects the patch,
-rectifies it, separates the x/y grating components by directional smoothing,
-and writes the measured strain distribution. The black square width and the
-white gap width are equal.
+places an oblique square-marker grid patch into the image, detects the patch,
+rectifies it from four image-space corner points, and visualizes the rectified
+reference/deformed grids plus the separated x/y grating components. The black
+square width and the white gap width are equal.
 
 .. code-block:: bash
 
    PYTHONPATH=src python examples/skimage_natural_grating_strain.py
 
 .. image:: _static/natural_grating_strain.png
-   :alt: Natural image sample with detected square-marker grating and strain fields
+   :alt: Oblique square-grid target detection, rectification, and component separation
    :width: 100%
 
 Choosing the axis

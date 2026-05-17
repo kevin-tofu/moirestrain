@@ -26,13 +26,13 @@ This is the smallest complete workflow for ``analyze_grid``.
 
 ``tutorials/02_partial_grid_detection.py`` demonstrates the workflow where a
 larger image contains only one grating patch. It detects the grating ROI,
-crops the reference/deformed images, analyzes the cropped region, and compares
-measured strain against a synthetic truth field.
+analyzes the detected region, and compares measured strain against a synthetic
+truth field.
 
 The generated README figure comes from this workflow:
 
 .. image:: _static/partial_grid_strain_measured_true.png
-   :alt: Partial-grid measured and true strain fields
+   :alt: Partial-grid ROI detection and measured/true strain comparison
    :width: 100%
 
 03. Four-Corner Rectification
@@ -43,4 +43,3 @@ view, rectifies it from four image-space corner points, and then runs grid
 analysis on the rectified pair. This is the recommended pattern when the camera
 is tilted relative to the target surface and the four grating corners are
 available.
-

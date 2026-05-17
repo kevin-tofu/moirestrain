@@ -220,12 +220,12 @@ def _save_measured_true_figure(
         print("matplotlib is not installed; skipped measured/true PNG visualization")
         return
 
-    name = "exx"
+    names = ["exx", "eyy", "gamma_xy"]
     y0, x0, y1, x1 = bounds
 
-    fig = plt.figure(figsize=(11.8, 6.8), constrained_layout=True)
-    spec = fig.add_gridspec(2, 3)
-    overview_axes = [fig.add_subplot(spec[0, col]) for col in range(3)]
+    fig = plt.figure(figsize=(10.6, 8.6), constrained_layout=True)
+    spec = fig.add_gridspec(3, 3, width_ratios=(1.05, 1.0, 1.0))
+    overview_axes = [fig.add_subplot(spec[row, 0]) for row in range(3)]
     overview_fields = [
         ("full image + ROI", reference, "gray", None),
         ("grating energy", energy, "magma", robust_limits(energy)),
@@ -251,26 +251,25 @@ def _save_measured_true_figure(
         ax.set_axis_off()
         fig.colorbar(image, ax=ax, shrink=0.72)
 
-    measured_view = measured[name]
-    truth_view = truth[name]
-    error_view = measured_view - truth_view
-    limits = robust_limits(np.stack([measured_view, truth_view]))
-    error_limits = robust_limits(error_view)
-    comparison_axes = [fig.add_subplot(spec[1, col]) for col in range(3)]
-    for ax, title, field, panel_limits in (
-        (comparison_axes[0], f"{name} measured", measured_view, limits),
-        (comparison_axes[1], f"{name} true", truth_view, limits),
-        (comparison_axes[2], f"{name} error", error_view, error_limits),
-    ):
-        image = ax.imshow(
-            field,
-            cmap="coolwarm",
-            vmin=panel_limits[0],
-            vmax=panel_limits[1],
-        )
-        ax.set_title(title)
-        ax.set_axis_off()
-        fig.colorbar(image, ax=ax, shrink=0.72)
+    for row, name in enumerate(names):
+        measured_view = measured[name]
+        truth_view = truth[name]
+        limits = robust_limits(np.stack([measured_view, truth_view]))
+        row_axes = [fig.add_subplot(spec[row, col]) for col in (1, 2)]
+        panels = [
+            (f"{name} measured", measured_view, limits),
+            (f"{name} true", truth_view, limits),
+        ]
+        for ax, (title, field, panel_limits) in zip(row_axes, panels):
+            image = ax.imshow(
+                field,
+                cmap="coolwarm",
+                vmin=panel_limits[0],
+                vmax=panel_limits[1],
+            )
+            ax.set_title(title)
+            ax.set_axis_off()
+            fig.colorbar(image, ax=ax, shrink=0.72)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=170)
     plt.close(fig)
