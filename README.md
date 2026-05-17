@@ -74,6 +74,18 @@ synthetic truth.
 
 ![partial grid measured true strain comparison](https://media.githubusercontent.com/media/kevin-tofu/moirestrain/main/docs/_static/partial_grid_strain_measured_true.png)
 
+The synthetic example starts from an ideal square-marker grid, samples it with
+sub-pixel averaging, and creates a deformed image by evaluating the same
+grid at coordinates shifted by known displacement fields `u(x, y)` and
+`v(x, y)`. The ground-truth strain fields are calculated directly from those
+displacement gradients:
+
+$$
+e_{xx} = \frac{\partial u}{\partial x}, \quad
+e_{yy} = \frac{\partial v}{\partial y}, \quad
+\gamma_{xy} = \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x}.
+$$
+
 ## Installation
 
 Install the released package from PyPI with pip:
