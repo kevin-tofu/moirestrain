@@ -202,7 +202,8 @@ def _save_figure(
 def _save_measured_true_figure(
     path: Path,
     *,
-    grid: np.ndarray,
+    reference: np.ndarray,
+    bounds: tuple[int, int, int, int],
     measured: dict[str, np.ndarray],
     truth: dict[str, np.ndarray],
     valid_mask: np.ndarray,
@@ -212,23 +213,33 @@ def _save_measured_true_figure(
 
         os.environ.setdefault("MPLCONFIGDIR", "/tmp/moirestrain-matplotlib")
         import matplotlib.pyplot as plt
+        from matplotlib.patches import Rectangle
     except ImportError:
         print("matplotlib is not installed; skipped measured/true PNG visualization")
         return
 
     names = ["exx", "eyy", "gamma_xy"]
+    y0, x0, y1, x1 = bounds
 
     def valid_view(array: np.ndarray) -> np.ndarray:
         return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
 
     fig = plt.figure(figsize=(10.4, 8.4), constrained_layout=True)
     spec = fig.add_gridspec(3, 3, width_ratios=(1.15, 1.0, 1.0))
-    for row in range(len(names)):
-        grid_ax = fig.add_subplot(spec[row, 0])
-        grid_ax.imshow(grid, cmap="gray", vmin=0.0, vmax=1.0)
-        if row == 0:
-            grid_ax.set_title("detected grid ROI")
-        grid_ax.set_axis_off()
+    grid_ax = fig.add_subplot(spec[:, 0])
+    grid_ax.imshow(reference, cmap="gray", vmin=0.0, vmax=1.0)
+    grid_ax.add_patch(
+        Rectangle(
+            (x0, y0),
+            x1 - x0,
+            y1 - y0,
+            fill=False,
+            edgecolor="tab:red",
+            linewidth=2.0,
+        )
+    )
+    grid_ax.set_title("full image + ROI")
+    grid_ax.set_axis_off()
 
     axes = np.array(
         [
@@ -395,7 +406,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         _save_measured_true_figure(
             output_dir / "partial_grid_strain_measured_true.png",
-            grid=cropped_reference,
+            reference=reference,
+            bounds=roi.bounds,
             measured={
                 "exx": result.strain.exx,
                 "eyy": result.strain.eyy,
