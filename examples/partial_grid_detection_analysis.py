@@ -221,14 +221,13 @@ def _save_measured_true_figure(
     def valid_view(array: np.ndarray) -> np.ndarray:
         return crop_to_mask(apply_valid_mask(array, valid_mask), valid_mask)
 
-    grid_view = crop_to_mask(grid, valid_mask)
     fig = plt.figure(figsize=(10.4, 8.4), constrained_layout=True)
     spec = fig.add_gridspec(3, 3, width_ratios=(1.15, 1.0, 1.0))
     for row in range(len(names)):
         grid_ax = fig.add_subplot(spec[row, 0])
-        grid_ax.imshow(grid_view, cmap="gray", vmin=0.0, vmax=1.0)
+        grid_ax.imshow(grid, cmap="gray", vmin=0.0, vmax=1.0)
         if row == 0:
-            grid_ax.set_title("cropped grid")
+            grid_ax.set_title("detected grid ROI")
         grid_ax.set_axis_off()
 
     axes = np.array(
